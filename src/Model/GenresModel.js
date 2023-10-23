@@ -8,3 +8,4 @@ const GenresSchema = new Schema({
 const Genres = model("genres", GenresSchema, "genres");
 
 module.exports = Genres;
+ 
