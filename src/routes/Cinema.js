@@ -5,9 +5,11 @@ const bodyParser = require('body-parser');
 const Genres = require('../Model/GenresModel.js');
 const Rooms = require("../Model/RoomsModel.js")
 const Movie = require('../Model/MoviesModel.js');
+const cors = require('cors');
 const movieController = require('../controller/MovieController.js');
 const GenreController = require('../controller/GenresController.js');
 const RoomsController = require('../controller/RoomsController.js');
+const ip = require("ip");
 
 const app = express();
 app.db = mongoose.connect(
@@ -23,6 +25,7 @@ app.db = mongoose.connect(
 });
 
 app.use(express.json());
+app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 //genre
@@ -109,5 +112,8 @@ app.get('/movies', async (req, res) => {
     }
   });
 
-app.listen(3090, () => console.log("Listening To : 3090"));
+app.listen(3090, () => {
+    console.log("IP Address:", ip.address());
+    console.log("Listening To: 3090")
+});
 app.post("/add-user", (req, res) => InsertUser(req, res));
