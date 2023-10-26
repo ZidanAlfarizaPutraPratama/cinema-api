@@ -1,7 +1,6 @@
 
 const Genres = require('../Model/GenresModel');
 
-// Create a new genre
 const createGenre = async (req, res) => {
   try {
     const { genre_id, name } = req.body;
@@ -14,10 +13,9 @@ const createGenre = async (req, res) => {
   }
 };
 
-// Get all genres
-const getAllGenres = async (req, res) => {
+const getAllGenre = async (req, res) => {
   try {
-    const genres = await Genres.find();
+    const genres = await Genres.find({});
     res.json(genres);
   } catch (error) {
     console.error(error.message);
@@ -48,9 +46,73 @@ const deleteGenre = async (req, res) => {
   }
 };
 
+const getGenreById = async (req, res) => {
+  try {
+    const { genre_id } = req.query;
+
+    // Cari genre berdasarkan genre_id
+    const genre = await Genres.findOne({ genre_id });
+
+    if (!genre) {
+      return res.status(404).json({ error: 'Genre dengan ID tersebut tidak ditemukan' });
+    }
+
+    res.status(200).json(genre);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Terjadi kesalahan saat mengambil data genre berdasarkan ID' });
+  }
+};
+
+// memperbarui genre berdasarkan ID
+const updateGenreById = async (req, res) => {
+  try {
+    const { genre_id } = req.params;
+    const { name } = req.body;
+
+    // Cari genre berdasarkan genre_id
+    const genre = await Genres.findOne({ genre_id });
+
+    if (!genre) {
+      return res.status(404).json({ error: 'Genre dengan ID tersebut tidak ditemukan' });
+    }
+
+    //Update nama genre
+    genre.name = name;
+    await genre.save();
+
+    res.json('Data Berhasil Diperbarui');
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Terjadi kesalahan saat memperbarui data genre' });
+  }
+};
+
+// Controller untuk menghapus genre berdasarkan ID
+const deleteGenreById = async (req, res) => {
+  try {
+    const { genre_id } = req.params;
+
+    // Hapus genre berdasarkan genre_id
+    const genre = await Genres.findOneAndDelete({ genre_id });
+
+    if (!genre) {
+      return res.status(404).json({ error: 'Genre dengan ID tersebut tidak ditemukan' });
+    }
+
+    res.json('Data Berhasil Dihapus');
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ message: 'Terjadi kesalahan saat menghapus data genre' });
+  }
+};
+
 module.exports = {
   createGenre,
-  getAllGenres,
+  getAllGenre,
   updateGenre,
   deleteGenre,
+  getGenreById,
+  updateGenreById,
+  deleteGenreById,
 };

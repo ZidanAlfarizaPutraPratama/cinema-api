@@ -1,13 +1,21 @@
-const Rooms = require('../Model/RoomsModel.js');
+const Rooms = require('../Model/RoomsModel');
 
-// Create a new room
 const createRoom = async (req, res) => {
+  const { room_id, name } = req.body;
+
   try {
-    const newRoom = new Rooms(req.body);
-    const savedRoom = await newRoom.save();
-    res.json(savedRoom);
+    const existingRoom = await Rooms.findOne({ room_id });
+
+    if (!existingRoom) {
+      const newRoom = new Rooms({ room_id, name });
+      const savedRoom = await newRoom.save();
+      res.status(201).json({ message: "Data Berhasil Disimpan", room: savedRoom });
+    } else {
+      res.status(400).json({ error: "Data Ada" }); // Wrap in an object with "error" key
+    }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create a new Room' });
+    console.error(error.message);
+    res.status(500).json({ error: "Terdapat kesalahan" }); // Correct the response format
   }
 };
 
@@ -17,27 +25,45 @@ const getAllRooms = async (req, res) => {
     const rooms = await Rooms.find();
     res.json(rooms);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch Rooms' });
+    console.error(error.message);
+    res.status(500).json({ error: "Terdapat kesalahan dalam mengambil data room" });
   }
 };
 
-// Update a room by ID
+// Update a room by room_id
 const updateRoom = async (req, res) => {
+  const { room_id } = req.params;
+  const { name } = req.body;
   try {
-    const updatedRoom = await Rooms.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    res.json(updatedRoom);
+    const room = await Rooms.findOneAndUpdate(
+      { room_id },
+      { name },
+      { new: true }
+    );
+    if (room) {
+      res.json({ message: "Data update", room });
+    } else {
+      res.status(404).json({ error: "Data Tidak Ditemukan" }); 
+    }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update the room' });
+    console.error(error.message);
+    res.status(500).json({ error: "Terdapat kesalahan dalam memperbarui data room" });
   }
 };
 
-// Delete a room by ID
+//Delete room ID
 const deleteRoom = async (req, res) => {
+  const { room_id } = req.params;
   try {
-    await rooms.findByIdAndRemove(req.params.id);
-    res.json({ message: 'Room deleted successfully' });
+    const room = await Rooms.findOneAndDelete({ room_id: room_id });
+    if (room) {
+      res.json("Data Berhasil Dihapus");
+    } else {
+      res.status(404).json({ error: "Data Tidak Ditemukan" }); 
+    }
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete the room' });
+    console.error(error.message);
+    res.status(500).json({ error: "Terdapat kesalahan dalam menghapus data room" });
   }
 };
 

@@ -1,14 +1,18 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const router = express.Router();
+const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const Genres = require("../Model/GenresModel.js");
 const Rooms = require("../Model/RoomsModel.js");
 const Movie = require("../Model/MoviesModel.js");
+const MoviePublish = require("../Model/MoviePublish.js");
+const Ticket = require("../Model/TicketModel.js");
 const cors = require("cors");
 const movieController = require("../controller/MovieController.js");
 const GenreController = require("../controller/GenresController.js");
 const RoomsController = require("../controller/RoomsController.js");
+const MoviePublishController = require("../controller/MoviePublishController.js");
+const TiketController = require("../controller/TicketController.js");
 const ip = require("ip");
 
 const app = express();
@@ -30,232 +34,49 @@ app.db = mongoose
 app.use(express.json());
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(router);
 
-//genre
-app.post("/genre", async (req, res) => {
-  const { name, genre_id } = req.body;
-  const data = await Genres.findOne({ name });
-  console.log(data);
-  if (!data) {
-    console.log("Tidak Ditemukan");
-    const newGenres = new Genres({ genre_id, name });
-    await newGenres.save();
-    res.json("Data Berhasil Di Simpan");
-  } else {
-    res.json("Data Sudah Ada");
-  }
-});
+//Genres
+router.post('/genre', GenreController.createGenre);
+router.put('/genre', GenreController.updateGenre);
+router.get('/genre', GenreController.getAllGenre);
+router.delete('/genre', GenreController.deleteGenre);
 
-app.get("/genre", async (req, res) => {
-  try {
-    const genres = await Genres.find();
-    res.json(genres);
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam mengambil data film" });
-  }
-});
+//Genre-by-id
+router.get('/genre/:genre_id', GenreController.getGenreById);
+router.put('/genre/:genre_id', GenreController.updateGenreById);
+router.delete('/genre/:genre_id', GenreController.deleteGenreById);
 
-app.put("/genre/:genre_id", async (req, res) => {
-  const { genre_id } = req.params;
-  const { name } = req.body;
-  try {
-    const genre = await Genres.findOneAndUpdate(
-      { genre_id },
-      { name },
-      { new: true }
-    );
-    if (genre) {
-      res.json("Data Berhasil Diperbarui");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam memperbarui data genre" });
-  }
-});
-
-app.delete("/genre/:genre_id", async (req, res) => {
-  const { genre_id } = req.params;
-  try {
-    const genre = await Genres.findOneAndDelete({ genre_id });
-    if (genre) {
-      res.json("Data Berhasil Dihapus");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam menghapus data genre" });
-  }
-});
 //movie
-app.post("/movies", async (req, res) => {
-  const { movie_id, name, genres, release_date, aired } = req.body;
-  try {
-    const existingMovie = await Movie.findOne({ name });
-    if (existingMovie) {
-      return res.json("Data Ada");
-    }
+router.post('/movies', movieController.createMovie);
+router.put('/movies', movieController.updateMovie);
+router.get('/movies', movieController.getAllMovies);
+router.delete('/movies', movieController.deleteMovie);
 
-    const genreIds = [];
+//movie by ID
+router.post('/movies/:movie_id', movieController.createMovie);
+router.put('/movies/:movie_id', movieController.updateMovie);
+router.get('/movies/:movie_id', movieController.getAllMovies);
+router.delete('/movies/:movie_id', movieController.deleteMovie);
 
-    for (const genreId of genres) {
-      const genre = await Genres.findOne({ genre_id: genreId });
-      if (!genre) {
-        return res.status(500).json("Genre tidak terdaftar");
-       }
+//movie-publish
+router.post('/movie-publishes', MoviePublishController.createMoviePublish);
 
-      genreIds.push(genre.genre_id);
-      
-    }    const newMovie = new Movie({
+//room
+router.post('/rooms', RoomsController.createRoom);
+router.get('/rooms', RoomsController.getAllRooms);
+router.put('/rooms/:room_id', RoomsController.updateRoom);
+router.delete('/rooms/:room_id', RoomsController.deleteRoom);
 
-      movie_id,
-      name,
-      genres: genreIds,
-      release_date,
-      aired,
-    });
-    await newMovie.save();
-    res.json("Data Berhasil Disimpan");
-  } catch (e) {
-    console.log(e.message);
-    res.status(500).json({ message: "Terdapat kesalahan" });
-  }
-});
+//movie-publish
+router.post('/movie-publishes', MoviePublishController.createMoviePublish);
+router.post('/movie-publishes/:no_publish/close', MoviePublishController.closeMoviePublish);
 
-app.get("/movies", async (req, res) => {
-  try {
-    const movies = await Movie.find();
-    res.json(movies);
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam mengambil data film" });
-  }
-});
+//Ticket
+router.post('/create-ticket', TiketController.createTicket);
+router.post('/tickets/:no_ticket/attend', TiketController.attendMovie);
 
-app.put("/movies/:movie_id", async (req, res) => {
-  const { movie_id } = req.params;
-  const { name, genres, release_date, aired } = req.body;
-
-  try {
-    const movie = await Movie.findOneAndUpdate(
-      { movie_id: movie_id }, // Query to find the movie by its movie_id
-      { name, genres, release_date, aired },
-      { new: true }
-    );
-
-    if (movie) {
-      res.json("Data Berhasil Diperbarui");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam memperbarui data movie" });
-  }
-});
-
-app.delete("/movie/:movie_id", async (req, res) => {
-  const { movie_id } = req.params;
-  try {
-    const movie = await Movie.findOneAndDelete({ movie_id });
-    if (movie) {
-      res.json("Data Berhasil Dihapus");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam menghapus data movie" });
-  }
-});
-
-//Rooms
-app.post("/rooms", async (req, res) => {
-  const { room_id, name } = req.body;
-
-  try {
-    const existingRoom = await Rooms.findOne({ room_id });
-
-    if (!existingRoom) {
-      const newRoom = new Rooms({ room_id, name });
-      const savedRoom = await newRoom.save();
-      res.json("Data Berhasil Disimpan");
-    } else {
-      res.json("Data Ada");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ message: "Terdapat kesalahan" });
-  }
-});
-
-app.get("/rooms", async (req, res) => {
-  try {
-    const rooms = await Rooms.find();
-    res.json(rooms);
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam mengambil data room" });
-  }
-});
-
-app.put("/rooms/:rooms_id", async (req, res) => {
-  const { room_id } = req.params;
-  const { name } = req.body;
-  try {
-    const room = await Rooms.findOneAndUpdate(
-      { room_id },
-      { name },
-      { new: true }
-    );
-    if (room) {
-      res.json("Data Berhasil Diperbarui");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam memperbarui data room" });
-  }
-});
-
-app.delete("/rooms/:room_id", async (req, res) => {
-  const { room_id } = req.params;
-  console.log(room_id);
-  try {
-    const room = await Rooms.findOneAndDelete({ room_id: room_id });
-    console.log(room);
-    if (room) {
-      res.json("Data Berhasil Dihapus");
-    } else {
-      res.json("Data Tidak Ditemukan");
-    }
-  } catch (error) {
-    console.log(error.message);
-    res
-      .status(500)
-      .json({ message: "Terdapat kesalahan dalam menghapus data room" });
-  }
-});
+module.exports = router;
 
 app.listen(3090, () => {
   console.log("IP Address:", ip.address());

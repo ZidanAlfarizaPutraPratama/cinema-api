@@ -1,19 +1,45 @@
 const Movie = require('../Model/MoviesModel.js');
 
 // Create a new movie
-exports.createMovie = async (req, res) => {
+const createMovie = async (req, res) => {
   try {
-    const { title, director, genre, releaseDate } = req.body;
-    const newMovie = new Movie({ title, director, genre, releaseDate });
-    const savedMovie = await newMovie.save();
-    res.json(savedMovie);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { movie_id, name, genres, release_date, aired } = req.body;
+    const existingMovie = await Movie.findOne({ name });
+
+    if (existingMovie) {
+      return res.status(400).json({ error: 'Film dengan nama tersebut sudah ada' });
+    }
+
+    const genreIds = [];
+
+    for (const genreId of genres) {
+      const genre = await Genres.findOne({ genre_id: genreId });
+
+      if (!genre) {
+        return res.status(400).json({ error: 'Genre tidak terdaftar' });
+      }
+
+      genreIds.push(genre.genre_id);
+    }
+
+    const newMovie = new Movie({
+      movie_id,
+      name,
+      genres: genreIds,
+      release_date,
+      aired,
+    });
+
+    await newMovie.save();
+
+    res.status(201).json({ message: 'Film berhasil dibuat', newMovie });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).json({ error: 'Gagal membuat film' });
   }
 };
 
-// Get all movies
-exports.getAllMovies = async (req, res) => {
+const getAllMovies = async (req, res) => {
   try {
     const movies = await Movie.find();
     res.json(movies);
@@ -22,29 +48,46 @@ exports.getAllMovies = async (req, res) => {
   }
 };
 
-// Update a movie by ID
-exports.updateMovie = async (req, res) => {
+// Temukan film berdasarkan movie_id
+const updateMovie = async (req, res) => {
   try {
-    const { title, director, genre, releaseDate } = req.body;
-    const movie = await Movie.findByIdAndUpdate(req.params.id, { title, director, genre, releaseDate }, { new: true });
-    res.json(movie);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const { movie_id } = req.params;
+    const { name, genres, release_date, aired } = req.body;
+    
+    const movie = await Movie.findOne({ movie_id });
+    
+    if (!movie) {
+      return res.status(404).json({ error: 'Movie with that movie_id was not found' });
+    }
+
+    // Update movie fields
+    movie.name = name;
+    movie.genres = genres;
+    movie.release_date = release_date;
+    movie.aired = aired;
+
+    // Save the updated movie
+    await movie.save();
+
+    res.json({ message: 'Movie has been successfully updated', movie });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update movie' });
   }
 };
 
 // Delete a movie by ID
-exports.deleteMovie = async (req, res) => {
+const deleteMovie = async (req, res) => {
   try {
     await Movie.findByIdAndRemove(req.params.id);
     res.json({ message: 'Movie deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-  module.exports = {
-    createMovie,
-    getAllMovies,
-    updateMovie,
-    deleteMovie,
-  }
+};
+
+module.exports = {
+  createMovie,
+  getAllMovies,
+  updateMovie,
+  deleteMovie,
 };
