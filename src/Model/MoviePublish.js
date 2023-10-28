@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const { Schema, model } = mongoose;
+const moment = require('moment');
+moment.locale('id');
 
 const MoviePublishSchema = new Schema({
   no_publish: {
@@ -20,11 +22,11 @@ const MoviePublishSchema = new Schema({
     required: true,
   },
   start_time: {
-    type: Date,
+    type: String,
     required: true,
   },
   end_time: {
-    type: Date,
+    type: String,
     required: true,
   },
   is_ended: {
@@ -32,13 +34,14 @@ const MoviePublishSchema = new Schema({
     required: true,
   },
 });
-    MoviePublishSchema.pre('save', async function (next) {
-    try {
-        if (!this.no_publish) {
-        this.no_publish = generateUniqueNoPublish();
-        const existingMoviePublish = await MoviePublish.findOne({ no_publish: this.no_publish });
-        if (existingMoviePublish) {
-        this.no_publish = generateUniqueNoPublish();
+
+MoviePublishSchema.pre('save', async function (next) {
+  try {
+    if (!this.no_publish) {
+      this.no_publish = `MP-${Date.now()}`;
+      const existingMoviePublish = await model('moviePublishes').findOne({ no_publish: this.no_publish });
+      if (existingMoviePublish) {
+        this.no_publish = `MP-${Date.now()}`;
       }
     }
     next();
@@ -46,11 +49,6 @@ const MoviePublishSchema = new Schema({
     next(error);
   }
 });
-
-function generateUniqueNoPublish() {
- uniqueValue;
-}
-
 
 const MoviePublish = model("moviePublishes", MoviePublishSchema, "moviePublishes");
 module.exports = MoviePublish;

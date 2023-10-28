@@ -1,23 +1,34 @@
 const Rooms = require('../Model/RoomsModel');
 
 const createRoom = async (req, res) => {
-  const { room_id, name } = req.body;
+  const { room_id, name, total_seat } = req.body;
 
   try {
     const existingRoom = await Rooms.findOne({ room_id });
 
     if (!existingRoom) {
-      const newRoom = new Rooms({ room_id, name });
+      const newRoom = new Rooms({ room_id, name, total_seat });
       const savedRoom = await newRoom.save();
       res.status(201).json({ message: "Data Berhasil Disimpan", room: savedRoom });
     } else {
-      res.status(400).json({ error: "Data Ada" }); // Wrap in an object with "error" key
+      res.status(400).json({ error: "Data Ada" }); 
     }
   } catch (error) {
     console.error(error.message);
-    res.status(500).json({ error: "Terdapat kesalahan" }); // Correct the response format
+    res.status(500).json({ error: "Terdapat kesalahan" });
   }
 };
+
+const GetRoomsById = async (req, res) => {
+  const { room_id } = req.query;
+
+  try {
+    const room = await Rooms.findOne({ room_id });
+    res.status(200).json(room);
+  } catch (error) {
+    res.status(500).json({ error: "Terdapat Kesalahan" });
+  }
+}
 
 // Get all rooms
 const getAllRooms = async (req, res) => {
@@ -33,11 +44,10 @@ const getAllRooms = async (req, res) => {
 // Update a room by room_id
 const updateRoom = async (req, res) => {
   const { room_id } = req.params;
-  const { name } = req.body;
   try {
     const room = await Rooms.findOneAndUpdate(
       { room_id },
-      { name },
+      req.body,
       { new: true }
     );
     if (room) {
@@ -72,4 +82,5 @@ module.exports = {
   getAllRooms,
   updateRoom,
   deleteRoom,
+  GetRoomsById
 };

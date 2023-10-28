@@ -13,6 +13,7 @@ const GenreController = require("../controller/GenresController.js");
 const RoomsController = require("../controller/RoomsController.js");
 const MoviePublishController = require("../controller/MoviePublishController.js");
 const TiketController = require("../controller/TicketController.js");
+const reportController = require('../controller/reportController.js');
 const ip = require("ip");
 
 const app = express();
@@ -40,10 +41,9 @@ app.use(router);
 router.post('/genre', GenreController.createGenre);
 router.put('/genre', GenreController.updateGenre);
 router.get('/genre', GenreController.getAllGenre);
-router.delete('/genre', GenreController.deleteGenre);
 
 //Genre-by-id
-router.get('/genre/:genre_id', GenreController.getGenreById);
+router.get('/genre-by-id', GenreController.getGenreById);
 router.put('/genre/:genre_id', GenreController.updateGenreById);
 router.delete('/genre/:genre_id', GenreController.deleteGenreById);
 
@@ -64,6 +64,7 @@ router.post('/movie-publishes', MoviePublishController.createMoviePublish);
 
 //room
 router.post('/rooms', RoomsController.createRoom);
+router.get('/rooms-by-id', RoomsController.GetRoomsById);
 router.get('/rooms', RoomsController.getAllRooms);
 router.put('/rooms/:room_id', RoomsController.updateRoom);
 router.delete('/rooms/:room_id', RoomsController.deleteRoom);
@@ -75,6 +76,9 @@ router.post('/movie-publishes/:no_publish/close', MoviePublishController.closeMo
 //Ticket
 router.post('/create-ticket', TiketController.createTicket);
 router.post('/tickets/:no_ticket/attend', TiketController.attendMovie);
+
+//Aggregation report
+router.get('/tickets/reports', reportController.getTicketReports);
 
 module.exports = router;
 

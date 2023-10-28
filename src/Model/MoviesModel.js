@@ -5,8 +5,8 @@ const MovieSchema = new Schema({
     movie_id: String,
     name: String,
     genres: [String],
-    release_date: Date,
-    aired: Date
+    release_date: String,
+    aired: String
 });
 
 const Movie = model("movies", MovieSchema, "movies");

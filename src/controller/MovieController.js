@@ -1,33 +1,34 @@
+const Genres = require('../Model/GenresModel.js');
 const Movie = require('../Model/MoviesModel.js');
+const moment = require('moment'); 
+moment.locale('id');
+
 
 // Create a new movie
 const createMovie = async (req, res) => {
+  const {
+    movie_id,
+    name,
+    genre_id,
+    release_date,
+    aired
+  } = req.body;
   try {
-    const { movie_id, name, genres, release_date, aired } = req.body;
-    const existingMovie = await Movie.findOne({ name });
-
+    // Periksa apakah movie_id sudah digunakan
+    const existingMovie = await Movie.findOne({ movie_id });
     if (existingMovie) {
-      return res.status(400).json({ error: 'Film dengan nama tersebut sudah ada' });
+      return res.status(400).json({ error: 'Movie dengan movie_id tersebut sudah ada' });
     }
 
-    const genreIds = [];
-
-    for (const genreId of genres) {
-      const genre = await Genres.findOne({ genre_id: genreId });
-
-      if (!genre) {
-        return res.status(400).json({ error: 'Genre tidak terdaftar' });
-      }
-
-      genreIds.push(genre.genre_id);
-    }
+    const formattedReleaseDate = moment(new Date(release_date)).format('L').replace(/\//g, "-");
+    const formattedAired = moment(new Date(aired)).format('L').replace(/\//g, "-");
 
     const newMovie = new Movie({
       movie_id,
       name,
-      genres: genreIds,
-      release_date,
-      aired,
+      genres: genre_id,
+      release_date: formattedReleaseDate,
+      aired: formattedAired
     });
 
     await newMovie.save();
@@ -37,7 +38,7 @@ const createMovie = async (req, res) => {
     console.error(error.message);
     res.status(500).json({ error: 'Gagal membuat film' });
   }
-};
+}
 
 const getAllMovies = async (req, res) => {
   try {
