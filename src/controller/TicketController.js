@@ -1,18 +1,19 @@
 const MoviePublish = require("../Model/MoviePublish");
 const Ticket = require("../Model/TicketModel");
+const Moment = require('moment');
 
 const createTicket = async (req, res) => {
   try {
     const { no_publish, customer_name, seat_number } = req.body;
 
-    const currentTime = new Date();
+    const currentTime = Moment(); 
     const moviePublish = await MoviePublish.findOne({ no_publish });
 
     if (!moviePublish) {
       return res.status(404).json({ error: "Movie Publish not found" });
     }
 
-    if (currentTime > new Date(moviePublish.start_time)) {
+    if (currentTime.isAfter(Moment(moviePublish.start_time))) { 
       return res
         .status(400)
         .json({ error: "Current time exceeds the Movie Publish start time" });
@@ -39,7 +40,7 @@ const createTicket = async (req, res) => {
       customer_name,
       seat_number,
       is_used: false,
-      date: new Date(),
+      date: currentTime.format('DD-MM-YYYY'), 
     });
 
     await ticket.save();
@@ -51,7 +52,7 @@ const createTicket = async (req, res) => {
 };
 
 function generateUniqueNoTicket() {
-  const uniqueTicketNumber = `${Date.now()}-${Math.floor(
+  const uniqueTicketNumber = `${Moment().format('x')}-${Math.floor(
     Math.random() * 1000
   )}`;
   return uniqueTicketNumber;
@@ -73,7 +74,7 @@ const attendMovie = async (req, res) => {
         .json({ error: "This ticket has already been used" });
     }
 
-    const currentTime = new Date();
+    const currentTime = Moment();
     const moviePublish = await MoviePublish.findOne({
       no_publish: ticket.no_publish,
     });
@@ -82,7 +83,7 @@ const attendMovie = async (req, res) => {
       return res.status(404).json({ error: "Movie Publish not found" });
     }
 
-    if (currentTime > new Date(moviePublish.end_time)) {
+    if (currentTime.isAfter(Moment(moviePublish.end_time))) {
       return res
         .status(400)
         .json({ message: "The movie has finished showing" });
