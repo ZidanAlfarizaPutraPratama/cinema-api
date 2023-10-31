@@ -8,11 +8,12 @@ const createTicket = async (req, res) => {
 
     const currentTime = Moment(); 
     const moviePublish = await MoviePublish.findOne({ no_publish });
-
+    console.log("current", currentTime)
     if (!moviePublish) {
       return res.status(404).json({ error: "Movie Publish not found" });
     }
 
+      console.log(moviePublish.start_time)
     if (currentTime.isAfter(Moment(moviePublish.start_time))) { 
       return res
         .status(400)
@@ -21,7 +22,7 @@ const createTicket = async (req, res) => {
 
     const validSeat = moviePublish.available_seat.includes(seat_number);
 
-    if (!validSeat) {
+    if (!validSeat) { 
       return res
         .status(400)
         .json({ error: "Invalid or already occupied seat number" });
@@ -30,9 +31,18 @@ const createTicket = async (req, res) => {
     moviePublish.available_seat = moviePublish.available_seat.filter(
       (seat) => seat !== seat_number
     );
+
     await moviePublish.save();
 
     const no_ticket = generateUniqueNoTicket();
+
+    // Waktu awal dalam format ISO8601
+    const inputTime = "2023-10-02T12:00:00.000+00:00"; 
+
+// Ubah format waktu
+const formattedTime = new Date(inputTime).toISOString().replace('T', ' ').split('.')[0];
+
+console.log(formattedTime); // Output: "2023-10-02 12:00:00"
 
     const ticket = new Ticket({
       no_ticket,
@@ -40,7 +50,7 @@ const createTicket = async (req, res) => {
       customer_name,
       seat_number,
       is_used: false,
-      date: currentTime.format('DD-MM-YYYY'), 
+      date: new Date() 
     });
 
     await ticket.save();

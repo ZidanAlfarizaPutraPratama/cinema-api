@@ -13,7 +13,7 @@ const GenreController = require("../controller/GenresController.js");
 const RoomsController = require("../controller/RoomsController.js");
 const MoviePublishController = require("../controller/MoviePublishController.js");
 const TiketController = require("../controller/TicketController.js");
-const reportController = require('../controller/reportController.js');
+const ReportController = require('../controller/reportController.js');
 const ip = require("ip");
 
 const app = express();
@@ -78,7 +78,10 @@ router.post('/create-ticket', TiketController.createTicket);
 router.post('/tickets/:no_ticket/attend', TiketController.attendMovie);
 
 //Aggregation report
-router.get('/tickets/reports', reportController.getTicketReports);
+router.get('/tickets/reports', ReportController.getTicketReports);
+router.get('/tickets/reports-movies', ReportController.getTicketReportsByMovies);
+router.get('/tickets/reports-genres', ReportController.getTicketReportsByGenres);
+router.get('/movie-publish/reports-seats', ReportController.getMoviePublishReportsWithSeats);
 
 module.exports = router;
 

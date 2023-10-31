@@ -22,11 +22,11 @@ const MoviePublishSchema = new Schema({
     required: true,
   },
   start_time: {
-    type: String,
+    type: Date,
     required: true,
   },
   end_time: {
-    type: String,
+    type: Date,
     required: true,
   },
   is_ended: {

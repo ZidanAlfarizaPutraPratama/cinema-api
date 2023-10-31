@@ -37,7 +37,7 @@ const createMoviePublish = async (req, res) => {
 
     const availableSeats = allSeats.filter((seat) => !usedSeats.includes(seat));
 
-    const currentTime = moment().format('DD-MM-YYYY');
+    const currentTime = moment().format('YYY-MM-DD');
 
     const moviePublish = new MoviePublish({
       no_publish,
